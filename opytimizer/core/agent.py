@@ -21,6 +21,7 @@ class Agent:
         self,
         n_variables: int,
         n_dimensions: int,
+        n_objectives: int,
         lower_bound: List[Union[int, float]],
         upper_bound: List[Union[int, float]],
         mapping: Optional[List[str]] = None,
@@ -30,6 +31,7 @@ class Agent:
         Args:
             n_variables: Number of decision variables.
             n_dimensions: Number of dimensions.
+            n_objectives: Number of objectives.
             lower_bound: Minimum possible values.
             upper_bound: Maximum possible values.
             mapping: String-based identifiers for mapping variables' names.
@@ -38,9 +40,10 @@ class Agent:
 
         self.n_variables = n_variables
         self.n_dimensions = n_dimensions
+        self.n_objectives = n_objectives
 
         self.position = np.zeros((n_variables, n_dimensions))
-        self.fit = c.FLOAT_MAX
+        self.fit = np.full(n_objectives, c.FLOAT_MAX)
 
         self.lb = np.asarray(lower_bound)
         self.ub = np.asarray(upper_bound)
@@ -80,6 +83,21 @@ class Agent:
         self._n_dimensions = n_dimensions
 
     @property
+    def n_objectives(self) -> int:
+        """Number of objectives."""
+
+        return self._n_objectives
+
+    @n_objectives.setter
+    def n_objectives(self, n_objectives: int) -> None:
+        if not isinstance(n_objectives, int):
+            raise e.TypeError("`n_objectives` should be an integer")
+        if n_objectives <= 0:
+            raise e.ValueError("`n_objectives` should be > 0")
+
+        self._n_objectives = n_objectives
+
+    @property
     def position(self) -> np.ndarray:
         """N-dimensional array of positions."""
 
@@ -93,15 +111,15 @@ class Agent:
         self._position = position
 
     @property
-    def fit(self) -> Union[int, float]:
-        """float: Fitness value."""
+    def fit(self) -> np.ndarray:
+        """Fitness value."""
 
         return self._fit
 
     @fit.setter
-    def fit(self, fit: Union[int, float]) -> None:
-        if not isinstance(fit, (float, int, np.int32, np.int64)):
-            raise e.TypeError("`fit` should be a float or integer")
+    def fit(self, fit: np.ndarray) -> None:
+        if not isinstance(fit, np.ndarray):
+            raise e.TypeError("`fit` should be a numpy array")
 
         self._fit = fit
 
