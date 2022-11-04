@@ -23,6 +23,7 @@ class Space:
         n_agents: Optional[int] = 1,
         n_variables: Optional[int] = 1,
         n_dimensions: Optional[int] = 1,
+        n_objectives: Optional[int] = 1,
         lower_bound: Optional[Union[float, List, Tuple, np.ndarray]] = 0.0,
         upper_bound: Optional[Union[float, List, Tuple, np.ndarray]] = 1.0,
         mapping: Optional[List[str]] = None,
@@ -33,6 +34,7 @@ class Space:
             n_agents: Number of agents.
             n_variables: Number of decision variables.
             n_dimensions: Dimension of search space.
+            n_objectives: Number of objectives.
             lower_bound: Minimum possible values.
             upper_bound: Maximum possible values.
             mapping: String-based identifiers for mapping variables' names.
@@ -42,6 +44,7 @@ class Space:
         self.n_agents = n_agents
         self.n_variables = n_variables
         self.n_dimensions = n_dimensions
+        self.n_objectives = n_objectives
 
         self.lb = np.asarray(lower_bound)
         self.ub = np.asarray(upper_bound)
@@ -50,7 +53,7 @@ class Space:
 
         self.agents = []
         self.best_agent = Agent(
-            n_variables, n_dimensions, lower_bound, upper_bound, mapping
+            n_variables, n_dimensions, n_objectives, lower_bound, upper_bound, mapping
         )
 
         self.built = False
@@ -99,6 +102,21 @@ class Space:
             raise e.ValueError("`n_dimensions` should be > 0")
 
         self._n_dimensions = n_dimensions
+
+    @property
+    def n_objectives(self) -> int:
+        """Number of objectives."""
+
+        return self._n_objectives
+
+    @n_objectives.setter
+    def n_objectives(self, n_objectives: int) -> None:
+        if not isinstance(n_objectives, int):
+            raise e.TypeError("`n_objectives` should be an integer")
+        if n_objectives <= 0:
+            raise e.ValueError("`n_objectives` should be > 0")
+
+        self._n_objectives = n_objectives
 
     @property
     def lb(self) -> np.ndarray:
@@ -194,7 +212,7 @@ class Space:
         """Creates a list of agents."""
 
         self.agents = [
-            Agent(self.n_variables, self.n_dimensions, self.lb, self.ub, self.mapping)
+            Agent(self.n_variables, self.n_dimensions, self.n_objectives, self.lb, self.ub, self.mapping)
             for _ in range(self.n_agents)
         ]
 
@@ -217,12 +235,13 @@ class Space:
         self.built = True
 
         logger.debug(
-            "Agents: %d | Size: (%d, %d) | "
+            "Agents: %d | Size: (%d, %d, %d) | "
             "Lower Bound: %s | Upper Bound: %s | "
             "Mapping: %s | Built: %s.",
             self.n_agents,
             self.n_variables,
             self.n_dimensions,
+            self.n_objectives,
             self.lb,
             self.ub,
             self.mapping,
